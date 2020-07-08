@@ -1,0 +1,150 @@
+<?php
+
+/**
+ * @file
+ * Code for the www_majors module.
+ */
+
+
+/**
+ * Implements hook_permission().
+ */
+function www_majors_dev_permission() {
+  return array(
+    'administer majors dev apps' => array(
+      'title' => t('Administer majors CDN'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function www_majors_dev_menu() {
+  $items = array();
+
+  $items['wwt-dev/majors'] = array(
+    'title' => '',
+    'description' => 'Embedded angular app.',
+    'page callback' => 'www_majors_dev_angular_div',
+    'access arguments' => array('access content'),
+  );
+  $items['wwt-test/majors'] = array(
+    'title' => '',
+    'description' => 'Embedded angular app.',
+    'page callback' => 'www_majors_dev_angular_div',
+    'access arguments' => array('access content'),
+  );
+  $items['wwt-stage/majors'] = array(
+    'title' => '',
+    'description' => 'Embedded angular app.',
+    'page callback' => 'www_majors_dev_angular_div',
+    'access arguments' => array('access content'),
+  );
+  $items['wwt-qa/majors'] = array(
+    'title' => '',
+    'description' => 'Embedded angular app.',
+    'page callback' => 'www_majors_dev_angular_div',
+    'access arguments' => array('access content'),
+  );
+
+  return $items;
+}
+
+/**
+ * Custom callback function.
+ */
+function www_majors_dev_angular_div() {
+  $href = arg(0);
+  if (substr( $href, 0, 4 ) === 'wwt-') {
+     $cdn_version = substr($href, 4);
+  }
+  else {
+    $cdn_version = 'dev';
+  }
+  // $bucket = variable_get('www_majors_cdn_bucket', 'latest');
+  $content['raw_markup'] = array(
+    '#type' => 'markup',
+    '#markup' => '<app-root></app-root>',
+  );
+  $content['#attached']['css'][] = array(
+    'type' => 'external',
+    'data' => 'https://cdn.' . $cdn_version . '.ds.trellis.arizona.edu/ds/majors/styles.css',
+    'weight' => 0,
+  );
+  $element = array(
+    '#tag' => 'base',
+    '#attributes' => array(
+      'href' => '/'. $href . '/majors',
+    ),
+  );
+
+  drupal_add_html_head($element, 'base_url');
+
+  return $content;
+}
+
+/**
+ * Implements hook_page_build().
+ */
+function www_majors_dev_page_build(&$page) {
+  // Add footer scripts to page bottom before </body> tag.
+  $href = arg(0);
+  if (substr( $href, 0, 4 ) === 'wwt-') {
+     $cdn_version = substr($href, 4);
+    // $bucket = variable_get('www_majors_cdn_bucket', 'latest');
+    drupal_set_title('');
+    $page['footer'][] = array(
+      '#markup' => '<script src="https://cdn.' . $cdn_version . '.ds.trellis.arizona.edu/ds/majors/config.js"></script>
+                    <script type="module" src="https://cdn.' . $cdn_version . '.ds.trellis.arizona.edu/ds/majors/polyfills-es2015.js"></script>
+                    <script type="module" src="https://cdn.' . $cdn_version . '.ds.trellis.arizona.edu/ds/majors/runtime-es2015.js"></script>
+                    <script type="module" src="https://cdn.' . $cdn_version . '.ds.trellis.arizona.edu/ds/majors/main-es2015.js"></script>
+                    <script defer nomodule src="https://cdn.' . $cdn_version . '.ds.trellis.arizona.edu/ds/majors/polyfills-es5.js"></script>
+                    <script defer nomodule src="https://cdn.' . $cdn_version . '.ds.trellis.arizona.edu/ds/majors/runtime-es5.js"></script>
+                    <script defer nomodule src="https://cdn.' . $cdn_version . '.ds.trellis.arizona.edu/ds/majors/main-es5.js"></script>',
+      );
+  }
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ *
+ * Taken directly from https://www.drupal.org/node/715160
+ * (Using template (.tpl.php) files in your own module).
+ */
+function www_majors_dev_theme_registry_alter(&$theme_registry) {
+  // Defined path to the current module.
+  $module_path = drupal_get_path('module', 'www_majors_dev');
+  // Find all .tpl.php files in this module's folder recursively.
+  $template_file_objects = drupal_find_theme_templates($theme_registry, '.tpl.php', $module_path);
+  // Iterate through all found template file objects.
+  foreach ($template_file_objects as $key => $template_file_object) {
+    // If the template has not already been overridden by a theme.
+    if (!isset($theme_registry[$key]['theme path']) || !preg_match('#/themes/#', $theme_registry[$key]['theme path'])) {
+      // Alter the theme path and template elements.
+      $theme_registry[$key]['theme path'] = $module_path;
+      $theme_registry[$key] = array_merge($theme_registry[$key], $template_file_object);
+      $theme_registry[$key]['type'] = 'module';
+    }
+  }
+}
+
+/**
+ * Implements hook_js_alter().
+ */
+function www_majors_dev_js_alter(&$javascript) {
+  $href = arg(0);
+  if (substr( $href, 0, 4 ) === 'wwt-') {
+    unset($javascript['profiles/ua_quickstart/themes/custom/ua_zen/js/ua_zen_back_to_top.js']);
+  }
+}
+
+/**
+ * Implements hook_css_alter().
+ */
+function www_majors_dev_css_alter(&$css) {
+  $href = arg(0);
+  if (substr( $href, 0, 4 ) === 'wwt-') {
+    unset($css['profiles/ua_quickstart/themes/custom/ua_zen/css/ua_zen_back_to_top.css']);
+  }
+}
